@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Connect and Send</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var form = document.querySelector("form");
+            form.onsubmit = function(event) {
+                event.preventDefault();  // Prevent the default form submission
+                var ip = document.getElementById('ip').value;
+                var port = document.getElementById('port').value;
+                var refreshRate = parseInt(document.getElementById('refresh_rate').value, 10);
+
+                var data = { ip: ip, port: port, refresh_rate: refreshRate };
+
+                fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => response.text())
+                    .then(text => {
+                        document.getElementById('response').innerText = 'Form submitted! ' + text;
+                    })
+                    .catch(err => console.error('Error submitting form:', err));
+            };
+
+            var socket = new WebSocket('ws://' + window.location.host + '/ws');
+            socket.onmessage = function(event) {
+                var responseDiv = document.getElementById('response');
+                responseDiv.innerHTML += '<p>' + event.data + '</p>'; // Append new data
+            };
+        });
+    </script>
+</head>
+<body>
+<form>
+    <label for="ip">IP Address:</label>
+    <input type="text" id="ip" name="ip"><br><br>
+    <label for="port">Port:</label>
+    <input type="text" id="port" name="port"><br><br>
+    <label for="refresh_rate">Refresh Rate (in seconds):</label>
+    <input type="text" id="refresh_rate" name="refresh_rate"><br><br>
+    <input type="submit" value="Submit">
+</form>
+<div id="response">Waiting for data...</div>
+</body>
+</html>
